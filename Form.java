@@ -143,7 +143,23 @@ public class Form extends javax.swing.JFrame {
         }
     }
     private void deleteData(){
-        
+        try{
+            createConnection();
+            name = txtName.getText();
+            gpa = Float.parseFloat(txtGpa.getText());
+            idNumber = txtID.getText();
+            String query1 = "DELETE FROM studentsForm " + "WHERE studentsId = '" + newID + " ' ";
+            System.out.println(query1);
+            stmt.executeUpdate(query1);
+            rs = stmt.executeQuery(query);
+            rs.last();
+            displayJlist();
+            con.close();
+            rightInput = true;
+            rightGpa = true;
+        } catch(SQLException err){
+            JOptionPane.showMessageDialog(this, err.getMessage());
+        }
     }
     
     //create connection
@@ -157,7 +173,7 @@ public class Form extends javax.swing.JFrame {
             stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_UPDATABLE);
             rs = stmt.executeQuery(query);
             
-            display();
+            //display();
         }catch(SQLException err){
             JOptionPane.showMessageDialog(this, err.getMessage());
         }
@@ -546,7 +562,16 @@ public class Form extends javax.swing.JFrame {
 
     private void btnLastActionPerformed(java.awt.event.ActionEvent evt) {                                        
         // TODO add your handling code here:
-        
+        try{
+            createConnection();
+            rs.last();
+            curRow = rs.getRow();
+            listName.setSelectedIndex(counter-1);
+            display();
+            con.close();
+        }catch(SQLException err){
+            JOptionPane.showMessageDialog(this, err.getMessage());
+        }
     }  
     
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {                                        
