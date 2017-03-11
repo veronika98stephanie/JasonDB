@@ -10,8 +10,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 
 /**
@@ -24,11 +25,16 @@ public class Form extends javax.swing.JFrame {
     Connection con;
     Statement stmt;
     ResultSet rs;
+    Float gpa;
     String name;
-    String gpa;
     String idNumber;
     String query = "SELECT * FROM studentsform";
+    String newID;
     int curRow = 1;
+    int choice = 0;
+    int counter = 0;
+    boolean rightInput = false;
+    boolean rightGpa = false;
 
     /**
      * Creates new form Form
@@ -36,6 +42,108 @@ public class Form extends javax.swing.JFrame {
     public Form() {
         initComponents();
         createConnection();
+        display();
+        displayJlist();
+        init();
+    }
+    
+    private void init(){
+        txtName.setText("");
+        txtID.setText("");
+        txtGpa.setText("");
+        txtName.setEnabled(false);
+        txtID.setEnabled(false);
+        txtGpa.setEnabled(false);
+        btnSave.setEnabled(false);
+        btnCancel.setEnabled(false);
+    }
+    
+    private void addData() throws Exception {
+        try{           
+            createConnection();
+            name = txtName.getText();
+            
+            if(Float.parseFloat(txtGpa.getText()) < 4.0 && 
+                    Float.parseFloat(txtGpa.getText())>0){
+                gpa = Float.parseFloat(txtGpa.getText());
+                rightGpa = true;
+            }
+            else{
+                rightGpa = false;
+                Exception Exception = null;
+                throw Exception;
+            }
+            
+            if (txtID.getText().matches("[0-9]{10}")){
+                idNumber = txtID.getText();
+                rightInput = true;
+            }
+            else{
+                rightInput = false;
+                Exception Exception = null;
+                throw Exception;
+            }
+            
+            String query1 = "INSERT INTO studentsform VALUES ('" + idNumber + 
+                    "','" + name + "'," +  gpa+ ")";
+            stmt.executeUpdate(query1);
+            rs = stmt.executeQuery(query);
+            rs.last();
+            
+            displayJlist();
+            System.out.println(txtGpa.getText());
+            //dlm.addElement(rs.getString("name"));
+            //listName.setModel(dlm);
+            con.close();
+        }catch(SQLException err){
+            JOptionPane.showMessageDialog(this, err.getMessage());
+        }
+    }
+    private void updateData() throws Exception{
+        try{   
+            createConnection();
+            name = txtName.getText();
+            
+            if(Float.parseFloat(txtGpa.getText()) < 4.0 && 
+                    Float.parseFloat(txtGpa.getText())>0){
+                gpa = Float.parseFloat(txtGpa.getText());
+                rightGpa = true;
+            }
+            else{
+                rightGpa = false;
+                Exception Exception = null;
+                throw Exception;
+            }
+            
+            if (txtID.getText().matches("[0-9]{10}")){
+                idNumber = txtID.getText();
+                rightInput = true;
+            }
+            else{
+                rightInput = false;
+                Exception Exception = null;
+                throw Exception;
+            }
+            //UPDATE studentsform SET name = 'name', studentId = 'id', GPA = gpa WHERE studentId = newID;
+            String query1 = "UPDATE studentsForm SET name = '" + name + 
+                    "',studentsId ='" + idNumber + "', GPA =" + gpa + 
+                    " WHERE studentsId='" + newID + "'";
+            stmt.executeUpdate(query1);
+            rs = stmt.executeQuery(query);
+            rs.last();
+            displayJlist();
+            System.out.println(txtGpa.getText());
+            //dlm.addElement(rs.getString("name"));
+            //listName.setModel(dlm);
+            con.close();
+            rightInput = true;
+           
+        }catch(SQLException err){
+            JOptionPane.showMessageDialog(this, err.getMessage());
+        }
+    }
+    private void deleteData(){
+        
     }
     
     //create connection
@@ -56,12 +164,25 @@ public class Form extends javax.swing.JFrame {
         
     }
 
-    public void display(){
+    public final void displayJlist(){
         try{
+            
+            rs.absolute(0);
+            counter = 0;
+            dlm.clear();
             while(rs.next()){
                 dlm.addElement(rs.getString("name"));
                 listName.setModel(dlm);
+                counter++;
             }
+           
+        }catch(SQLException e){
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }
+    
+    public void display(){
+        try{
             
             rs.absolute(curRow);
             
@@ -69,6 +190,8 @@ public class Form extends javax.swing.JFrame {
             idNumber = rs.getString("StudentsID");
             gpa = rs.getString("gpa");
 
+            newID = idNumber;
+            
             txtName.setText(name);
             txtGpa.setText(gpa);
             txtID.setText(idNumber);
@@ -83,7 +206,7 @@ public class Form extends javax.swing.JFrame {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+// <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         lblStudentInfo = new javax.swing.JLabel();
@@ -117,6 +240,7 @@ public class Form extends javax.swing.JFrame {
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         listName.setFont(new java.awt.Font("Tw Cen MT", 0, 24)); // NOI18N
+        listName.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         listName.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 listNameMouseClicked(evt);
@@ -127,6 +251,7 @@ public class Form extends javax.swing.JFrame {
         jPanel1.setBorder(new javax.swing.border.MatteBorder(null));
 
         lblPhoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblPhoto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/FormPackage/9 Dolls.jpg"))); // NOI18N
         lblPhoto.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         lblPhoto.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentResized(java.awt.event.ComponentEvent evt) {
@@ -184,7 +309,7 @@ public class Form extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtGpa, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(lblGPA))))
-                .addContainerGap(53, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         btnFirst.setText("First");
@@ -195,6 +320,11 @@ public class Form extends javax.swing.JFrame {
         });
 
         btnLast.setText("Last");
+        btnLast.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLastActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -214,7 +344,7 @@ public class Form extends javax.swing.JFrame {
                 .addComponent(btnFirst, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(btnLast, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(71, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         btnAdd.setText("Add");
@@ -225,31 +355,51 @@ public class Form extends javax.swing.JFrame {
         });
 
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
 
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         btnSave.setText("Save");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         btnCancel.setText("Cancel");
+        btnCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCancelActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(34, 34, 34)
+                .addContainerGap()
+                .addComponent(btnSave, javax.swing.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(25, 25, 25)
                 .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(20, Short.MAX_VALUE))
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(btnSave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -259,10 +409,10 @@ public class Form extends javax.swing.JFrame {
                     .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -294,50 +444,99 @@ public class Form extends javax.swing.JFrame {
                 .addComponent(lblStudentInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap())
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 357, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(13, 13, 13))
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
-
+    }// </editor-fold>              
+    
+    private void setButton1(){
+        btnSave.setEnabled(true);
+        btnCancel.setEnabled(true);
+        listName.setEnabled(false);
+        txtName.setEnabled(true);
+        txtID.setEnabled(true);
+        txtGpa.setEnabled(true);
+        btnAdd.setEnabled(false);
+        btnUpdate.setEnabled(false);
+        btnDelete.setEnabled(false);
+        btnFirst.setEnabled(false);
+        btnLast.setEnabled(false);
+    }
+    
+    private void setButton2(){
+        btnSave.setEnabled(false);
+        btnCancel.setEnabled(false);
+        listName.setEnabled(true);
+        txtName.setEnabled(false);
+        txtID.setEnabled(false);
+        txtGpa.setEnabled(false);
+        btnAdd.setEnabled(true);
+        btnUpdate.setEnabled(true);
+        btnDelete.setEnabled(true);
+        btnFirst.setEnabled(true);
+        btnLast.setEnabled(true);
+    }
+    
+    private void setButton3(){
+        btnSave.setEnabled(true);
+        btnCancel.setEnabled(true);
+        listName.setEnabled(true);
+        txtName.setEnabled(true);
+        txtID.setEnabled(true);
+        txtGpa.setEnabled(true);
+        btnAdd.setEnabled(false);
+        btnUpdate.setEnabled(false);
+        btnDelete.setEnabled(false);
+        btnFirst.setEnabled(false);
+        btnLast.setEnabled(false);
+    }
+    
+    
+    
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         // TODO add your handling code here:
-        
-        try{
-            name = txtName.getText();
-            gpa = txtGpa.getText();
-            idNumber = txtID.getText();
-            
-            String query1 = "INSERT INTO studentsform VALUES ('" + idNumber + 
-                    "','" + name + "'," +  gpa+ ")";
-            stmt.executeUpdate(query1);
-            rs = stmt.executeQuery(query);
-            
-            dlm.addElement(rs.getString("name"));
-            listName.setModel(dlm);
-        }catch(SQLException err){
-            JOptionPane.showMessageDialog(this, err.getMessage() + "Please input the right name,"
-                    + " gpa, and ID");
-        }
-        
+        choice = 1;
+        txtName.setText("");
+        txtID.setText("");
+        txtGpa.setText("");
+        setButton1();
         
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void listNameMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listNameMouseClicked
         // TODO add your handling code here:
-        
-        
+        createConnection();
+        curRow = listName.getSelectedIndex()+ 1;
+        display();        
+        try {
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Form.class.getName()).log(Level.SEVERE, null, ex);
+        }   
     }//GEN-LAST:event_listNameMouseClicked
 
     private void btnFirstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFirstActionPerformed
         // TODO add your handling code here:
+        try{
+            createConnection();
+            rs.first();
+            curRow = rs.getRow();
+            listName.setSelectedIndex(0);
+            
+            display();
+            con.close();
+        }catch(SQLException err){
+            JOptionPane.showMessageDialog(this, err.getMessage());
+        }
+        
     }//GEN-LAST:event_btnFirstActionPerformed
 
     private void lblPhotoComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_lblPhotoComponentResized
@@ -345,6 +544,88 @@ public class Form extends javax.swing.JFrame {
         
     }//GEN-LAST:event_lblPhotoComponentResized
 
+    private void btnLastActionPerformed(java.awt.event.ActionEvent evt) {                                        
+        // TODO add your handling code here:
+        
+    }  
+    
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {                                        
+        // TODO add your handling code here:
+        while(choice == 1){
+            try {
+                addData();
+                break;
+            } catch (SQLException ex) {
+                Logger.getLogger(Form.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Please input the right one"
+                 + "\nStudentID: 10 digits number\n Name : less than 30 char\n "
+                        + "GPA : less than 4 more than 0, format ex: 3.33");
+                break;
+            }               
+        }
+        while(choice == 2){
+            try {
+                updateData();
+                break;
+            } catch (SQLException ex) {
+                Logger.getLogger(Form.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Please input the right one"
+                 + "\nStudentID: 10 digits number\n Name : less than 30 char\n "
+                        + "GPA : less than 4 more than 0, format ex: 3.33");
+                break;
+            }      
+        }
+        while(choice == 3){
+            try {
+                deleteData();
+                txtName.setText("");
+                txtID.setText("");
+                txtGpa.setText("");
+                break;
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "There is nothing to be deleted");
+                break;
+            }      
+        }
+        
+        if(rightInput && rightGpa){
+            setButton2();
+            rightInput = false;
+            rightGpa = false;
+        }else{
+            setButton1();
+        }
+    }
+    
+    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        // TODO add your handling code here:
+        txtName.setText("");
+        txtID.setText("");
+        txtGpa.setText("");
+        setButton2();
+        createConnection();
+        display();
+        try {
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Form.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }  
+    
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        // TODO add your handling code here:
+        choice = 2;
+        setButton3();
+    }                                         
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        // TODO add your handling code here:
+        choice = 3;
+        setButton3();
+    }     
+    
     /**
      * @param args the command line arguments
      */
